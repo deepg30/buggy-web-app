@@ -267,16 +267,10 @@ function displayProducts() {
     productsGrid.innerHTML = "";
   }
 
-  // Bug #4: Trying to access undefined property occasionally
-  productsToShow.slice(startIndex).forEach((product, index) => {
+  productsToShow.slice(startIndex).forEach((product) => {
     try {
       const productCard = createProductCard(product);
       productsGrid.appendChild(productCard);
-
-      // Bug #5: Randomly try to access undefined nested property
-      if (index % 3 === 0) {
-        console.log("Product analytics:", product.analytics.views); // analytics doesn't exist
-      }
     } catch (error) {
       console.warn(`Failed to load product ${product.id}:`, error.message);
     }
@@ -292,13 +286,6 @@ function displayProducts() {
   console.log(
     `Displayed ${productsToShow.slice(startIndex).length} products successfully`
   );
-
-  // Bug #6: Trying to update non-existent metrics
-  try {
-    updateProductMetrics(productsToShow.length); // This function doesn't exist
-  } catch (error) {
-    console.warn("Product metrics update failed:", error.message);
-  }
 }
 
 function createProductCard(product) {
@@ -443,7 +430,11 @@ function setupEventListeners() {
   window.addEventListener("error", function (e) {
     console.error("Global error caught:", e.error);
     // In production, this might send errors to analytics but here it just logs
-    trackError(e.error); // This function doesn't exist
+    try {
+      trackError(e.error); // This function doesn't exist
+    } catch (err) {
+      console.warn("trackError failed:", err.message);
+    }
   });
 }
 
@@ -465,25 +456,9 @@ function applyFilters() {
       case "name":
         return a.name.localeCompare(b.name);
       case "price-low":
-        // Bug: Comparing prices as strings instead of numbers, causing incorrect sorting
-        console.warn(
-          "Price sorting bug: Comparing",
-          a.price.toString(),
-          "with",
-          b.price.toString(),
-          "as strings"
-        );
-        return a.price.toString().localeCompare(b.price.toString());
+        return a.price - b.price;
       case "price-high":
-        // Bug: Same issue with string comparison for descending price sort
-        console.warn(
-          "Price sorting bug: Comparing",
-          b.price.toString(),
-          "with",
-          a.price.toString(),
-          "as strings"
-        );
-        return b.price.toString().localeCompare(a.price.toString());
+        return b.price - a.price;
       case "rating":
         return b.rating - a.rating;
       default:
@@ -496,13 +471,6 @@ function applyFilters() {
 
   // Display filtered products
   displayProducts();
-
-  // Bug #11: Trying to update URL with undefined function
-  try {
-    updateURLParams(category, maxPrice, sortBy); // This function doesn't exist
-  } catch (error) {
-    console.warn("Failed to update URL parameters:", error.message);
-  }
 }
 
 function loadMoreProducts() {
@@ -543,18 +511,6 @@ function addToCart(productId) {
 
   updateCartUI();
   saveCartToStorage();
-
-  // Bug #12: Trying to track event with undefined analytics
-  try {
-    analytics.track("add_to_cart", {
-      // analytics object doesn't exist
-      product_id: productId,
-      product_name: product.name,
-      price: product.price,
-    });
-  } catch (error) {
-    console.warn("Analytics tracking failed:", error.message);
-  }
 
   // Show feedback (this works correctly)
   showNotification(`${product.name} added to cart!`);
@@ -664,23 +620,9 @@ function checkout() {
 }
 
 function clearCart() {
-  // Bug #22: Using assignment instead of clearing the array
-  // This creates a new array but doesn't clear the original reference
-  const cart = []; // This creates a local variable instead of clearing the global cart
-
-  console.error(
-    "Clear cart bug: Created local variable instead of clearing global cart"
-  );
-  console.log(
-    'Cart length after "clearing":',
-    cart.length,
-    "(global cart still has items)"
-  );
-
-  updateCartUI(); // This will still show the old cart since global cart wasn't cleared
-  saveCartToStorage(); // This saves the old cart, not the empty one
-
-  // Show fake success message to user
+  cart.length = 0;
+  updateCartUI();
+  saveCartToStorage();
   showNotification("Cart cleared!");
 }
 
