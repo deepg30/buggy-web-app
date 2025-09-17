@@ -110,7 +110,16 @@
           <span class="close">&times;</span>
         </div>
         <div class="modal-body">
-          <div id="cart-items"></div>
+          <table id="cart-table" class="cart-table">
+            <thead>
+              <tr>
+                <th onclick="sortTable(0, 'string')">Product Name</th>
+                <th onclick="sortTable(1, 'number')">Quantity</th>
+                <th onclick="sortTable(2, 'number')">Price</th>
+              </tr>
+            </thead>
+            <tbody id="cart-items"></tbody>
+          </table>
           <div class="cart-total">
             <strong>Total: $<span id="cart-total">0.00</span></strong>
           </div>
