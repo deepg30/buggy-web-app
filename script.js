@@ -465,25 +465,9 @@ function applyFilters() {
       case "name":
         return a.name.localeCompare(b.name);
       case "price-low":
-        // Bug: Comparing prices as strings instead of numbers, causing incorrect sorting
-        console.warn(
-          "Price sorting bug: Comparing",
-          a.price.toString(),
-          "with",
-          b.price.toString(),
-          "as strings"
-        );
-        return a.price.toString().localeCompare(b.price.toString());
+        return a.price - b.price;
       case "price-high":
-        // Bug: Same issue with string comparison for descending price sort
-        console.warn(
-          "Price sorting bug: Comparing",
-          b.price.toString(),
-          "with",
-          a.price.toString(),
-          "as strings"
-        );
-        return b.price.toString().localeCompare(a.price.toString());
+        return b.price - a.price;
       case "rating":
         return b.rating - a.rating;
       default:
@@ -586,7 +570,7 @@ function updateCartModal() {
 
   if (cart.length === 0) {
     cartItems.innerHTML =
-      '<div class="empty-state"><i class="fas fa-shopping-cart"></i><p>Your cart is empty</p></div>';
+      '<tr><td colspan="3" class="empty-state"><i class="fas fa-shopping-cart"></i><p>Your cart is empty</p></td></tr>';
     cartTotal.textContent = "0.00";
     return;
   }
@@ -597,22 +581,45 @@ function updateCartModal() {
   cart.forEach((item) => {
     total += item.price * item.quantity;
 
-    const cartItem = document.createElement("div");
-    cartItem.className = "cart-item";
-    cartItem.innerHTML = `
-            <div class="cart-item-info">
-                <h4>${item.name}</h4>
-                <p>Quantity: ${item.quantity}</p>
-            </div>
-            <div class="cart-item-price">$${(
-              item.price * item.quantity
-            ).toFixed(2)}</div>
-        `;
+    const cartItemRow = document.createElement("tr");
+    cartItemRow.innerHTML = `
+      <td>${item.name}</td>
+      <td>${item.quantity}</td>
+      <td>${(item.price * item.quantity).toFixed(2)}</td>
+    `;
 
-    cartItems.appendChild(cartItem);
+    cartItems.appendChild(cartItemRow);
   });
 
   cartTotal.textContent = total.toFixed(2);
+}
+
+function sortTable(columnIndex, type) {
+  let sortOrder = 1;
+  const table = document.getElementById("cart-table");
+  const currentSortOrder = table.getAttribute("data-sort-order") || "desc";
+
+  if (table.getAttribute("data-sort-column") == columnIndex) {
+    sortOrder = currentSortOrder === "asc" ? -1 : 1;
+  }
+
+  table.setAttribute("data-sort-column", columnIndex);
+  table.setAttribute("data-sort-order", sortOrder === 1 ? "asc" : "desc");
+
+  const rows = Array.from(cartItems.querySelectorAll("tr"));
+
+  rows.sort((a, b) => {
+    const aText = a.cells[columnIndex].innerText;
+    const bText = b.cells[columnIndex].innerText;
+
+    if (type === "number") {
+      return (Number(aText.replace(/[^0-9.-]+/g, "")) - Number(bText.replace(/[^0-9.-]+/g, ""))) * sortOrder;
+    } else {
+      return aText.localeCompare(bText) * sortOrder;
+    }
+  });
+
+  rows.forEach(row => cartItems.appendChild(row));
 }
 
 function openCartModal() {
@@ -664,23 +671,11 @@ function checkout() {
 }
 
 function clearCart() {
-  // Bug #22: Using assignment instead of clearing the array
-  // This creates a new array but doesn't clear the original reference
-  const cart = []; // This creates a local variable instead of clearing the global cart
+  cart.length = 0; // Correctly clear the global cart array
 
-  console.error(
-    "Clear cart bug: Created local variable instead of clearing global cart"
-  );
-  console.log(
-    'Cart length after "clearing":',
-    cart.length,
-    "(global cart still has items)"
-  );
+  updateCartUI();
+  saveCartToStorage();
 
-  updateCartUI(); // This will still show the old cart since global cart wasn't cleared
-  saveCartToStorage(); // This saves the old cart, not the empty one
-
-  // Show fake success message to user
   showNotification("Cart cleared!");
 }
 
