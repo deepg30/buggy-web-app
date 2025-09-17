@@ -666,7 +666,7 @@ function checkout() {
 function clearCart() {
   // Bug #22: Using assignment instead of clearing the array
   // This creates a new array but doesn't clear the original reference
-  const cart = []; // This creates a local variable instead of clearing the global cart
+  cart = []; // This creates a local variable instead of clearing the global cart
 
   console.error(
     "Clear cart bug: Created local variable instead of clearing global cart"
