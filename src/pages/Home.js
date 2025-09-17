@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 function Home() {
   const [data, setData] = useState(null);
   const [count, setCount] = useState(0);
-  const [networkStatus, setNetworkStatus] = useState('idle');
+  const [networkStatus, setNetworkStatus] = useState("idle");
   const [apiData, setApiData] = useState(null);
 
   // Bug #9: useEffect with missing dependency - but won't crash
@@ -72,99 +72,101 @@ function Home() {
 
   // Bug #15: Network error - fetch to non-existent API
   const fetchNonExistentAPI = async () => {
-    setNetworkStatus('loading');
+    setNetworkStatus("loading");
     try {
       // Bug: This URL doesn't exist - will cause network error
-      const response = await fetch('/api/non-existent-endpoint');
+      const response = await fetch("/api/non-existent-endpoint");
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
       const result = await response.json();
       setApiData(result);
-      setNetworkStatus('success');
+      setNetworkStatus("success");
     } catch (error) {
-      console.error('Bug #15 triggered - Network Error:', error.message);
-      setNetworkStatus('error');
+      console.error("Bug #15 triggered - Network Error:", error.message);
+      setNetworkStatus("error");
       alert(`Network Error (Bug #15): ${error.message}`);
     }
   };
 
   // Bug #16: CORS error - trying to fetch from external API without proper headers
   const fetchWithCORSIssue = async () => {
-    setNetworkStatus('loading');
+    setNetworkStatus("loading");
     try {
       // Bug: This will likely cause CORS issues
-      const response = await fetch('https://api.github.com/users/nonexistentuser12345');
+      const response = await fetch(
+        "https://api.github.com/users/nonexistentuser12345"
+      );
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
       const result = await response.json();
       setApiData(result);
-      setNetworkStatus('success');
+      setNetworkStatus("success");
     } catch (error) {
-      console.error('Bug #16 triggered - CORS/Network Error:', error.message);
-      setNetworkStatus('error');
+      console.error("Bug #16 triggered - CORS/Network Error:", error.message);
+      setNetworkStatus("error");
       alert(`CORS/Network Error (Bug #16): ${error.message}`);
     }
   };
 
   // Bug #17: Timeout error - long running request without timeout handling
   const fetchWithTimeout = async () => {
-    setNetworkStatus('loading');
+    setNetworkStatus("loading");
     try {
       // Bug: Long URL that might timeout, no timeout handling
-      const response = await fetch('https://httpbin.org/delay/10'); // 10 second delay
+      const response = await fetch("https://httpbin.org/delay/10"); // 10 second delay
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
       const result = await response.json();
       setApiData(result);
-      setNetworkStatus('success');
+      setNetworkStatus("success");
     } catch (error) {
-      console.error('Bug #17 triggered - Timeout Error:', error.message);
-      setNetworkStatus('error');
+      console.error("Bug #17 triggered - Timeout Error:", error.message);
+      setNetworkStatus("error");
       alert(`Timeout Error (Bug #17): ${error.message}`);
     }
   };
 
   // Bug #18: Malformed JSON response handling
   const fetchMalformedJSON = async () => {
-    setNetworkStatus('loading');
+    setNetworkStatus("loading");
     try {
       // Bug: Trying to parse response as JSON when it might not be
-      const response = await fetch('https://httpbin.org/html');
+      const response = await fetch("https://httpbin.org/html");
       // Bug: Not checking content-type before parsing as JSON
       const result = await response.json(); // This will fail - HTML response, not JSON
       setApiData(result);
-      setNetworkStatus('success');
+      setNetworkStatus("success");
     } catch (error) {
-      console.error('Bug #18 triggered - JSON Parse Error:', error.message);
-      setNetworkStatus('error');
+      console.error("Bug #18 triggered - JSON Parse Error:", error.message);
+      setNetworkStatus("error");
       alert(`JSON Parse Error (Bug #18): ${error.message}`);
     }
   };
 
   // Bug #19: Network error with wrong HTTP method
   const postToGetEndpoint = async () => {
-    setNetworkStatus('loading');
+    setNetworkStatus("loading");
     try {
       // Bug: Using POST method on a GET-only endpoint
-      const response = await fetch('https://httpbin.org/get', {
-        method: 'POST',
+      const response = await fetch("https://httpbin.org/get", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ data: 'test' }),
+        body: JSON.stringify({ data: "test" }),
       });
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
       const result = await response.json();
       setApiData(result);
-      setNetworkStatus('success');
+      setNetworkStatus("success");
     } catch (error) {
-      console.error('Bug #19 triggered - HTTP Method Error:', error.message);
-      setNetworkStatus('error');
+      console.error("Bug #19 triggered - HTTP Method Error:", error.message);
+      setNetworkStatus("error");
       alert(`HTTP Method Error (Bug #19): ${error.message}`);
     }
   };
@@ -185,25 +187,48 @@ function Home() {
 
         {/* Network Error Buttons */}
         <h4>Network Error Triggers</h4>
-        
-        <button onClick={fetchNonExistentAPI} disabled={networkStatus === 'loading'}>
-          {networkStatus === 'loading' ? 'Loading...' : 'Fetch Non-existent API (Bug #15)'}
+
+        <button
+          onClick={fetchNonExistentAPI}
+          disabled={networkStatus === "loading"}
+        >
+          {networkStatus === "loading"
+            ? "Loading..."
+            : "Fetch Non-existent API (Bug #15)"}
         </button>
 
-        <button onClick={fetchWithCORSIssue} disabled={networkStatus === 'loading'}>
-          {networkStatus === 'loading' ? 'Loading...' : 'CORS Error (Bug #16)'}
+        <button
+          onClick={fetchWithCORSIssue}
+          disabled={networkStatus === "loading"}
+        >
+          {networkStatus === "loading" ? "Loading..." : "CORS Error (Bug #16)"}
         </button>
 
-        <button onClick={fetchWithTimeout} disabled={networkStatus === 'loading'}>
-          {networkStatus === 'loading' ? 'Loading...' : 'Timeout Error (Bug #17)'}
+        <button
+          onClick={fetchWithTimeout}
+          disabled={networkStatus === "loading"}
+        >
+          {networkStatus === "loading"
+            ? "Loading..."
+            : "Timeout Error (Bug #17)"}
         </button>
 
-        <button onClick={fetchMalformedJSON} disabled={networkStatus === 'loading'}>
-          {networkStatus === 'loading' ? 'Loading...' : 'JSON Parse Error (Bug #18)'}
+        <button
+          onClick={fetchMalformedJSON}
+          disabled={networkStatus === "loading"}
+        >
+          {networkStatus === "loading"
+            ? "Loading..."
+            : "JSON Parse Error (Bug #18)"}
         </button>
 
-        <button onClick={postToGetEndpoint} disabled={networkStatus === 'loading'}>
-          {networkStatus === 'loading' ? 'Loading...' : 'Wrong HTTP Method (Bug #19)'}
+        <button
+          onClick={postToGetEndpoint}
+          disabled={networkStatus === "loading"}
+        >
+          {networkStatus === "loading"
+            ? "Loading..."
+            : "Wrong HTTP Method (Bug #19)"}
         </button>
 
         {/* Safe rendering with proper checks */}
@@ -228,14 +253,16 @@ function Home() {
         )}
 
         {/* Network Status Display */}
-        {networkStatus !== 'idle' && (
+        {networkStatus !== "idle" && (
           <div className="network-status">
             <h4>Network Status:</h4>
             <p className={`status status-${networkStatus}`}>
               Status: {networkStatus.toUpperCase()}
             </p>
-            {networkStatus === 'error' && (
-              <p className="error-message">Check console for detailed error information</p>
+            {networkStatus === "error" && (
+              <p className="error-message">
+                Check console for detailed error information
+              </p>
             )}
             {apiData && (
               <div className="api-response">
@@ -257,7 +284,7 @@ function Home() {
             : "Invalid (Bug #21)"}
           %
         </p>
-        <p>Network requests made: {networkStatus !== 'idle' ? '1+' : '0'}</p>
+        <p>Network requests made: {networkStatus !== "idle" ? "1+" : "0"}</p>
       </div>
     </div>
   );

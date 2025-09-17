@@ -161,7 +161,7 @@ h3 {
   padding: 1rem;
   border-radius: 4px;
   margin-top: 1rem;
-  font-family: 'Courier New', monospace;
+  font-family: "Courier New", monospace;
   max-height: 200px;
   overflow-y: auto;
 }
