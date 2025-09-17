@@ -1,73 +1,119 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 
 function Home() {
   const [data, setData] = useState(null);
   const [count, setCount] = useState(0);
 
-  // Bug #9: useEffect with missing dependency
+  // Bug #9: useEffect with missing dependency - but won't crash
   useEffect(() => {
-    // Bug #10: Trying to call undefined function
-    const result = someUndefinedFunction();
-    setData(result);
-  }, []); // Missing 'count' in dependency array
+    // Simulate some data loading instead of calling undefined function
+    const simulateLoading = () => {
+      try {
+        // Bug #10: Reference to undefined function (wrapped)
+        const result = someUndefinedFunction();
+        setData(result);
+      } catch (error) {
+        console.error("Bug #10 triggered:", error.message);
+        // Set some mock data so the page still works
+        setData({
+          items: [
+            {
+              id: 1,
+              title: "Sample Item 1",
+              description: "This is a sample description for testing",
+            },
+            {
+              id: 2,
+              title: "Sample Item 2",
+              description: "Another sample description",
+            },
+          ],
+        });
+      }
+    };
 
-  // Bug #11: Function that will cause TypeError
+    // Delay to simulate API call
+    setTimeout(simulateLoading, 1000);
+  }, []); // Bug: Missing 'count' in dependency array
+
+  // Bug #11: Function that will cause TypeError but wrapped
   const processData = () => {
-    // Bug #12: Accessing property of potentially null value
-    return data.items.map(item => item.name); // TypeError if data is null
+    try {
+      if (!data || !data.items) {
+        throw new Error("Data is not available");
+      }
+      // Bug #12: This would fail if data.items doesn't exist
+      return data.items.map((item) => item.name || "Unknown");
+    } catch (error) {
+      console.error("Bug #11/12 triggered:", error.message);
+      alert("Process data button has a bug - check the console!");
+      return [];
+    }
   };
 
-  // Bug #13: Infinite loop potential
+  // Bug #13: Incorrect increment logic (subtle bug, won't crash)
   const badIncrement = () => {
     setCount(count + 1); // Should use callback form
-    setCount(count + 1); // Will not increment by 2 as expected
+    setCount(count + 1); // Will not increment by 2 as expected - this is the bug
   };
 
   // Bug #14: Synchronous operation treated as async
   const fakeAsyncOperation = () => {
-    const result = Math.random();
-    return result.then(data => data * 2); // TypeError: result.then is not a function
+    try {
+      const result = Math.random();
+      return result.then((data) => data * 2); // TypeError: result.then is not a function
+    } catch (error) {
+      console.error("Bug #14 triggered:", error.message);
+      alert("Fake async button has a bug - check the console!");
+    }
   };
 
   return (
     <div className="home">
       <h2>Welcome to Buggy Web!</h2>
       <p>This site contains intentional bugs for testing purposes.</p>
-      
+
       <div className="bug-section">
         <h3>Bug Triggers</h3>
-        
-        <button onClick={processData}>
-          Process Data (Will Error if data is null)
-        </button>
-        
-        <button onClick={badIncrement}>
-          Bad Increment: {count}
-        </button>
-        
-        <button onClick={fakeAsyncOperation}>
-          Fake Async (Will Error)
-        </button>
-        
-        {/* Bug #15: Conditional rendering with potential undefined */}
-        {data && data.items.map(item => (
-          <div key={item.id}>
-            {/* Bug #16: Accessing nested property without checking */}
-            <h4>{item.title.toUpperCase()}</h4>
-            <p>{item.description.substring(0, 50)}</p>
+
+        <button onClick={processData}>Process Data (Bug #11/12)</button>
+
+        <button onClick={badIncrement}>Bad Increment: {count} (Bug #13)</button>
+
+        <button onClick={fakeAsyncOperation}>Fake Async (Bug #14)</button>
+
+        {/* Safe rendering with proper checks */}
+        {data &&
+          data.items &&
+          data.items.map((item) => (
+            <div key={item.id}>
+              <h4>{item.title ? item.title.toUpperCase() : "No Title"}</h4>
+              <p>
+                {item.description
+                  ? item.description.substring(0, 50) + "..."
+                  : "No description"}
+              </p>
+            </div>
+          ))}
+
+        {/* Bug #17: Logic error - checking wrong type but won't crash */}
+        {typeof data === "string" && (
+          <div>
+            <p>This will never show because data is not a string (Bug #17)</p>
           </div>
-        ))}
-        
-        {/* Bug #17: Using array method on non-array */}
-        {typeof data === 'string' && data.map(char => (
-          <span key={char}>{char}</span>
-        ))}
+        )}
       </div>
-      
+
       <div className="stats">
         <p>Current count: {count}</p>
-        {/* Bug #18: Division by zero */}
-        <p>Percentage: {(100 / (count - count)) || 'Invalid'}%</p>
+        {/* Bug #18: Division by zero - results in Infinity but won't crash */}
+        <p>
+          Percentage:{" "}
+          {isFinite(100 / (count - count))
+            ? 100 / (count - count)
+            : "Invalid (Bug #18)"}
+          %
+        </p>
       </div>
     </div>
   );

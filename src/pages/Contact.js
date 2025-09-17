@@ -1,10 +1,10 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef } from "react";
 
 function Contact() {
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    message: ''
+    name: "",
+    email: "",
+    message: "",
   });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -13,60 +13,65 @@ function Contact() {
   // Bug #31: Improper form validation
   const validateForm = () => {
     const newErrors = {};
-    
+
     // Bug #32: Using regex incorrectly
     const emailRegex = /^[^@]+@[^@]+\.[^@]+$/;
-    if (!formData.email.match(emailRegex)) {
-      newErrors.email = 'Invalid email';
+    if (formData.email && !formData.email.match(emailRegex)) {
+      newErrors.email = "Invalid email";
     }
-    
-    // Bug #33: Not checking for null/undefined before calling string methods
-    if (formData.name.trim().length < 2) { // Will error if name is null
-      newErrors.name = 'Name too short';
+
+    // Bug #33: Safe check but still has logic issues
+    if (!formData.name || formData.name.trim().length < 2) {
+      newErrors.name = "Name too short";
     }
-    
-    // Bug #34: Logic error in validation
-    if (formData.message || formData.message.length > 500) { // Should be AND, not OR
-      newErrors.message = 'Message is required and must be less than 500 characters';
+
+    // Bug #34: Logic error in validation (OR instead of AND)
+    if (!formData.message || formData.message.length > 500) {
+      // Bug: should be AND for max length
+      newErrors.message =
+        "Message is required and must be less than 500 characters";
     }
-    
+
     return newErrors;
   };
 
   // Bug #35: Not preventing default form submission
   const handleSubmit = async (e) => {
-    // e.preventDefault(); // Commented out - will cause page reload
-    
+    e.preventDefault(); // Fixed to prevent page reload
+
     setIsSubmitting(true);
-    
+
     const validationErrors = validateForm();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       setIsSubmitting(false);
       return;
     }
-    
+
     try {
       // Bug #36: Hardcoded URL that doesn't exist
-      const response = await fetch('/api/contact/submit', {
-        method: 'POST',
+      const response = await fetch("/api/contact/submit", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(formData),
       });
-      
-      // Bug #37: Not checking if response is ok
-      const result = await response.json(); // Will error if response is not JSON
-      
-      alert('Message sent successfully!');
-      
+
+      // Bug #37: Not checking if response is ok properly
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+
+      const result = await response.json(); // Will likely error due to fake API
+      alert("Message sent successfully!");
+
       // Bug #38: Resetting form incorrectly
-      setFormData({}); // Missing required properties
-      
+      setFormData({ name: "", email: "", message: "" }); // Fixed structure but still has bugs
     } catch (error) {
       // Bug #39: Generic error handling
-      alert('Something went wrong!'); // Not user-friendly
+      console.error("Bug #36/37/39 triggered:", error.message);
+      alert("Something went wrong! (This is intentional - Bug #36/37/39)");
     } finally {
       setIsSubmitting(false);
     }
@@ -75,15 +80,15 @@ function Contact() {
   // Bug #40: Missing null check in input handler
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    
-    setFormData(prev => ({
+
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
-    
+
     // Bug #41: Clearing errors incorrectly
     if (errors[name]) {
-      setErrors(prev => {
+      setErrors((prev) => {
         delete prev[name]; // Direct mutation
         return prev; // Doesn't trigger re-render
       });
@@ -96,11 +101,13 @@ function Contact() {
     // Not updating React state
   };
 
-  // Bug #43: Potential infinite loop
+  // Bug #43: Potential infinite loop (but limited to prevent crash)
   const [submitCount, setSubmitCount] = useState(0);
   React.useEffect(() => {
-    if (submitCount > 0) {
-      setSubmitCount(submitCount + 1); // Infinite loop
+    if (submitCount > 0 && submitCount < 3) {
+      // Limit to prevent infinite loop
+      console.warn("Bug #43: This effect has poor dependency logic");
+      setSubmitCount(submitCount + 1); // This is still buggy but won't crash
     }
   }, [submitCount]);
 
@@ -108,7 +115,7 @@ function Contact() {
     <div className="contact">
       <h2>Contact Us</h2>
       <p>Send us a message (warning: form has bugs!)</p>
-      
+
       <form ref={formRef} onSubmit={handleSubmit} className="contact-form">
         <div className="form-group">
           <label htmlFor="name">Name:</label>
@@ -118,11 +125,11 @@ function Contact() {
             name="name"
             value={formData.name}
             onChange={handleInputChange}
-            className={errors.name ? 'error' : ''}
+            className={errors.name ? "error" : ""}
           />
           {errors.name && <span className="error-text">{errors.name}</span>}
         </div>
-        
+
         <div className="form-group">
           <label htmlFor="email">Email:</label>
           <input
@@ -131,11 +138,11 @@ function Contact() {
             name="email"
             value={formData.email}
             onChange={handleInputChange}
-            className={errors.email ? 'error' : ''}
+            className={errors.email ? "error" : ""}
           />
           {errors.email && <span className="error-text">{errors.email}</span>}
         </div>
-        
+
         <div className="form-group">
           <label htmlFor="message">Message:</label>
           <textarea
@@ -144,21 +151,23 @@ function Contact() {
             value={formData.message}
             onChange={handleInputChange}
             rows="5"
-            className={errors.message ? 'error' : ''}
+            className={errors.message ? "error" : ""}
           ></textarea>
-          {errors.message && <span className="error-text">{errors.message}</span>}
+          {errors.message && (
+            <span className="error-text">{errors.message}</span>
+          )}
         </div>
-        
+
         <div className="form-actions">
           <button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Sending...' : 'Send Message'}
+            {isSubmitting ? "Sending..." : "Send Message"}
           </button>
           <button type="button" onClick={clearForm}>
             Clear Form (Buggy)
           </button>
         </div>
       </form>
-      
+
       {/* Bug #44: Displaying sensitive information */}
       <div className="debug-info">
         <h3>Debug Info (Should not be visible in production):</h3>
