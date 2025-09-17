@@ -512,15 +512,75 @@ function loadMoreProducts() {
   loadMoreBtn.disabled = true;
   loadMoreBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
 
-  // Simulate API delay
-  setTimeout(() => {
-    currentPage++;
-    displayProducts();
+  // Bug: Make an API call to a real endpoint that will return a 405 Method Not Allowed error
+  // Using httpbin.org which will return proper HTTP error status codes
+  fetch("https://httpbin.org/post", {
+    // This endpoint only accepts POST, but we'll use PATCH
+    method: "PATCH", // PATCH method will cause 405 Method Not Allowed
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: "Bearer fake-token-12345",
+      "X-Session-ID": "YEnDtF0lgbf4s0PIUq-9f-l8GI2DGUKfAFwJ1Zirt5G3",
+      "X-Request-ID": `req-${Date.now()}-${Math.random()
+        .toString(36)
+        .substr(2, 9)}`,
+    },
+    body: JSON.stringify({
+      sessionId: "YEnDtF0lgbf4s0PIUq-9f-l8GI2DGUKfAFwJ1Zirt5G3",
+      page: currentPage + 1,
+      limit: PRODUCTS_PER_PAGE,
+      timestamp: Date.now(),
+      action: "loadMoreProducts",
+      userId: "user_" + Math.random().toString(36).substr(2, 9),
+    }),
+  })
+    .then((response) => {
+      console.log("API Response status:", response.status);
+      console.log("API Response statusText:", response.statusText);
 
-    isLoading = false;
-    loadMoreBtn.disabled = false;
-    loadMoreBtn.innerHTML = "Load More Products";
-  }, 1000);
+      if (!response.ok) {
+        // This will trigger with actual HTTP status codes like 405 Method Not Allowed
+        throw new Error(
+          `HTTP ${response.status}: ${response.statusText} - Invalid method definition`
+        );
+      }
+      return response.json();
+    })
+    .then((data) => {
+      // This will never be reached since we'll get a 405 error
+      console.log("Products loaded:", data);
+      currentPage++;
+      displayProducts();
+
+      // Reset loading state (but this won't be reached)
+      isLoading = false;
+      loadMoreBtn.disabled = false;
+      loadMoreBtn.innerHTML = "Load More Products";
+    })
+    .catch((error) => {
+      // Log the actual HTTP error with status code
+      console.error("API Error - Invalid method definition:", error.message);
+      console.error("Full error details:", {
+        message: error.message,
+        endpoint: "https://httpbin.org/post",
+        method: "PATCH",
+        sessionId: "YEnDtF0lgbf4s0PIUq-9f-l8GI2DGUKfAFwJ1Zirt5G3",
+        timestamp: new Date().toISOString(),
+        expectedStatus: "405 Method Not Allowed",
+      });
+
+      // Intentionally NOT resetting the loading state to create infinite loader
+      // isLoading = false;
+      // loadMoreBtn.disabled = false;
+      // loadMoreBtn.innerHTML = "Load More Products";
+
+      // The button stays in loading state forever due to the method not allowed error
+    });
+
+  // No fallback setTimeout - relies entirely on the API call that will return 405
+  console.log(
+    "Load more products initiated - expecting 405 Method Not Allowed error..."
+  );
 }
 
 function addToCart(productId) {
