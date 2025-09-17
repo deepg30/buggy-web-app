@@ -53,10 +53,8 @@ function Home() {
     }
   };
 
-  // Bug #13: Incorrect increment logic (subtle bug, won't crash)
-  const badIncrement = () => {
-    setCount(count + 1); // Should use callback form
-    setCount(count + 1); // Will not increment by 2 as expected - this is the bug
+  const increment = () => {
+    setCount(prevCount => prevCount + 1);
   };
 
   // Bug #14: Synchronous operation treated as async
@@ -181,7 +179,7 @@ function Home() {
 
         <button onClick={processData}>Process Data (Bug #11/12)</button>
 
-        <button onClick={badIncrement}>Bad Increment: {count} (Bug #13)</button>
+        <button onClick={increment}>Increment: {count}</button>
 
         <button onClick={fakeAsyncOperation}>Fake Async (Bug #14)</button>
 
