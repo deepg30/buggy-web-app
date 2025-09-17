@@ -118,6 +118,71 @@ h3 {
   background: #c0392b;
 }
 
+/* Network status styles */
+.network-status {
+  background: #ecf0f1;
+  padding: 1rem;
+  margin: 1rem 0;
+  border-radius: 8px;
+  border-left: 4px solid #3498db;
+}
+
+.status {
+  font-weight: bold;
+  padding: 0.5rem;
+  border-radius: 4px;
+  margin: 0.5rem 0;
+}
+
+.status-loading {
+  background: #f39c12;
+  color: white;
+}
+
+.status-success {
+  background: #27ae60;
+  color: white;
+}
+
+.status-error {
+  background: #e74c3c;
+  color: white;
+}
+
+.error-message {
+  color: #e74c3c;
+  font-style: italic;
+  margin-top: 0.5rem;
+}
+
+.api-response {
+  background: #2c3e50;
+  color: #ecf0f1;
+  padding: 1rem;
+  border-radius: 4px;
+  margin-top: 1rem;
+  font-family: 'Courier New', monospace;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.api-response h5 {
+  color: #3498db;
+  margin-bottom: 0.5rem;
+}
+
+.api-response pre {
+  font-size: 0.8rem;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.bug-section h4 {
+  margin: 1.5rem 0 1rem 0;
+  color: #e74c3c;
+  font-size: 1.1rem;
+}
+
 /* Stats section */
 .stats {
   background: #ecf0f1;
